@@ -144,6 +144,44 @@ $response.value | Select-Object name, folder, file
 $response.value | Select-Object name, folder, file | Export-Csv -Path "OneDriveFiles.csv" -NoTypeInformation
 ```
 
-Assim você gera um inventário dos arquivos/pastas direto no seu computador.  
+Assim você gera um inventário dos arquivos/pastas direto no seu computador. 
+
+Aqui está um **script PowerShell completo** que já conecta, solicita o token via Azure CLI, consulta os arquivos/pastas da raiz do OneDrive e exporta tudo para um CSV:
+
+```powershell
+# Faz login no Azure CLI (se necessário)
+az login
+
+# Obtém o token de acesso para o Microsoft Graph
+$token = az account get-access-token --resource-type ms-graph --query accessToken -o tsv
+
+# Define cabeçalho de autorização
+$headers = @{
+    Authorization = "Bearer $token"
+}
+
+# Endpoint da API do OneDrive (raiz do drive do usuário)
+$uri = "https://graph.microsoft.com/v1.0/me/drive/root/children"
+
+# Faz a requisição
+$response = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get
+
+# Exibe os resultados no console
+$response.value | Select-Object name, folder, file, size
+
+# Exporta para CSV
+$response.value | Select-Object name, folder, file, size | Export-Csv -Path "OneDriveFiles.csv" -NoTypeInformation -Encoding UTF8
+
+Write-Host "Exportação concluída! Arquivo salvo em OneDriveFiles.csv"
+```
+
+### 🔎 O que você terá:
+- **Login automático** via `az login`  
+- **Token JWT** obtido com `az account get-access-token`  
+- **Consulta ao Microsoft Graph** para listar arquivos/pastas  
+- **Exportação para CSV** com nome, tipo (arquivo/pasta) e tamanho  
+
+👉 Depois de rodar, você encontrará o arquivo `OneDriveFiles.csv` na pasta onde executou o script.  
+
 
 
